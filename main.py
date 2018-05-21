@@ -120,9 +120,9 @@ def main():
     global data_y1
     data_y1 = _getY1(data_y1)
 
-    x2, y2 = GetPlotFitData(data_x2, data_y2, 0, 100)
+    x2, y2 = GetPlotFitData(data_x2, data_y2, 0, max(data_x2))
 
-    x3, y3 = GetPlotFitData(data_x3, data_y3, 2, 100)
+    x3, y3 = GetPlotFitData(data_x3, data_y3, min(data_x3), 100)
 
     x4, y4 = GetPlotFitData(data_x4, data_y4, 1.3, 1.9)
     x5, y5 = GetPlotFitData(data_x5, data_y5, 1.3, 1.9)
