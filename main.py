@@ -5,7 +5,7 @@
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-LINE_POINT_COUNT = 1000
+LINE_POINT_COUNT = 10000
 LABELS = ['基元灰分曲线', '浮物曲线', '沉物曲线', '±0.1含量曲线', '密度曲线']
 LABELS_VISIBLE = True
 BBOX_TO_ANCHOR = (1.05, 1)
