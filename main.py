@@ -131,7 +131,6 @@ def main():
         用浮物曲线/沉物曲线拟合出的点,矫正基元灰分曲线.
     '''
     x1_begin, y1_begin = _getNearest0Value(x2, y2)
-    x1_begin = 2.2 - x1_begin / 100 * (2.2 - 1.2)
     data_x1.insert(0, x1_begin)
     data_y1.insert(0, y1_begin)
     x1_end, y1_end = _getNearest0Value(x3, y3)
@@ -141,7 +140,7 @@ def main():
     '''
         绘制曲线
     '''
-    line1, = ax1.plot(x1, y1, 'r')
+    line1, = ax1.plot(x1, y1, color='r')
     line2, = ax1.plot(x2, y2, 'g')
     line3, = ax2.plot(x3, y3, 'c')
     line4, = ax3.plot(x4, y4, 'y')
