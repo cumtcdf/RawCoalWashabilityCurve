@@ -8,14 +8,53 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 from collections import Iterable
 import numpy as np
-from decimal import Decimal
 
-LINE_POINT_COUNT = 10000
-LABELS = ['基元灰分曲线', '浮物曲线', '沉物曲线', '±0.1含量曲线', '密度曲线']
+LINE_POINT_COUNT = 1000
+# ================    ===============================
+# character           description
+# ================    ===============================
+# ``'-'``             solid line style
+# ``'--'``            dashed line style
+# ``'-.'``            dash-dot line style
+# ``':'``             dotted line style
+# ``'.'``             point marker
+# ``','``             pixel marker
+# ``'o'``             circle marker
+# ``'v'``             triangle_down marker
+# ``'^'``             triangle_up marker
+# ``'<'``             triangle_left marker
+# ``'>'``             triangle_right marker
+# ``'1'``             tri_down marker
+# ``'2'``             tri_up marker
+# ``'3'``             tri_left marker
+# ``'4'``             tri_right marker
+# ``'s'``             square marker
+# ``'p'``             pentagon marker
+# ``'*'``             star marker
+# ``'h'``             hexagon1 marker
+# ``'H'``             hexagon2 marker
+# ``'+'``             plus marker
+# ``'x'``             x marker
+# ``'D'``             diamond marker
+# ``'d'``             thin_diamond marker
+# ``'|'``             vline marker
+# ``'_'``             hline marker
+# ================    ===============================
+RED, YELLOW, BLUE, GREEN, MAGENTA, BLACK, WHITE, CYAN = \
+    'r', 'y', 'b', 'g', 'm', 'k', 'w', 'c'
+
+LINES_STYLE = {
+    '基元灰分曲线': (RED, "*"),
+    '浮物曲线': (GREEN, "*"),
+    '沉物曲线': (MAGENTA, "*"),
+    '±0.1含量曲线': (YELLOW, "*"),
+    '密度曲线': (BLUE, "*")
+}
+
 LABELS_VISIBLE = True
 BBOX_TO_ANCHOR = (1.05, 1)
-TICKS_0_110 = [i for i in range(0, 110, 10)]
-TICKS_12_22 = [i / 10 for i in range(12, 23, 1)]
+TICKS_0_110 = np.linspace(0, 100, 11)
+TICKS_12_22 = np.linspace(1.2, 2.2, 11)
 
 
 class Row:
@@ -50,7 +89,9 @@ class Line:
             self.Add(x, y)
         self._fx = self._GetPlotFitData()
         self.x = np.linspace(xMin, xMax, num=LINE_POINT_COUNT, endpoint=True)
-        self.y = np.array(self.GetValues(self.x))
+        self.y = np.array(self._GetValues(self.x))
+        self.fx = interpolate.interp1d(self.x, self.y)
+        self.fy = interpolate.interp1d(self.y, self.x)
 
     def _GetPlotFitData(self):
         if self.xData[0] > self.xData[-1]:
@@ -63,7 +104,7 @@ class Line:
         self.xData.append(x)
         self.yData.append(y)
 
-    def GetValues(self, x):
+    def _GetValues(self, x):
         intFlag = False
         if isinstance(x, int):
             intFlag = True
@@ -91,7 +132,9 @@ class RawCoalWashabilityCurve(object):
         self._lines = {}
         self._interps = []
         self._fig = None
-        self._axs = []
+        self._axs = None
+        self._plt = None
+        self._GetFig()
         self._GetSinksData()
         self._GetFloatsLine()
         self._GetRawAshLine()
@@ -99,11 +142,40 @@ class RawCoalWashabilityCurve(object):
         self._GetDensityLine()
         pass
 
+    def _GetFig(self):
+        '''
+                创建坐标系
+            '''
+        from pylab import mpl
+        mpl.rcParams['font.sans-serif'] = ['SimHei']
+        fig, ax1 = plt.subplots()
+        plt.grid(True, linestyle="-.", color=BLACK)
+        plt.ylabel('浮物产率(%)')
+        plt.xlabel('灰分(%)')
+        plt.xlim((0, 100))
+        plt.ylim((0, 100))
+        plt.xticks(TICKS_0_110)
+        plt.yticks(TICKS_0_110)
+        plt.gca().invert_yaxis()
+        ax2 = ax1.twinx()
+        plt.ylabel('沉物产率(%)')
+        plt.ylim((0, 100))
+        plt.yticks(TICKS_0_110)
+        ax3 = ax1.twiny()
+        plt.xlabel('密度(g/L)')
+        plt.xlim((1.2, 2.2))
+        plt.xticks(TICKS_12_22)
+        plt.gca().invert_xaxis()
+        self._axs = (ax1, ax2, ax3)
+        self._fig = fig
+
     def _GetSinksData(self):
         '''
         获取沉物曲线值
         :return:
         '''
+        name = '沉物曲线'
+        axindex = 1
         pointList = []
         x, y, temp = 0, 0, 0
         self._data.sort(reverse=True)
@@ -113,7 +185,8 @@ class RawCoalWashabilityCurve(object):
             x = temp / y if y != 0 else d.Ash
             pointList.append((x, y))
         line = Line(pointList=pointList, xMin=x, xMax=100)
-        self._lines['沉物曲线'] = line
+        style = LINES_STYLE[name]
+        self._lines[name] = (line, self._axs[axindex], style)
         return
 
     def _GetFloatsLine(self):
@@ -121,6 +194,8 @@ class RawCoalWashabilityCurve(object):
         获取浮物曲线值
         :return:
         '''
+        name = '浮物曲线'
+        axindex = 0
         pointList = []
         x, y, temp = 0, 0, 0
         self._data.sort()
@@ -130,7 +205,8 @@ class RawCoalWashabilityCurve(object):
             x = round(temp / y, 2) if y != 0 else d.Ash
             pointList.append((x, y))
         line = Line(pointList=pointList, xMin=0, xMax=x)
-        self._lines['浮物曲线'] = line
+        style = LINES_STYLE[name]
+        self._lines[name] = (line, self._axs[axindex], style)
         return
 
     def _GetRawAshLine(self):
@@ -152,40 +228,32 @@ class RawCoalWashabilityCurve(object):
                 res.append(sum - datas[i] / 2)
             return res
 
-        def _getNearest0Value(data_x, data_y):
-            '''
-            获取最接近0的值,因为浮物曲线/沉物曲线在
-            :param data_x:
-            :param data_y:
-            :return:
-            '''
-            distance = data_y[0]
-            position = data_x[0]
-            for x, y in zip(data_x, data_y):
-                position, distance = (x, y) if abs(distance) > abs(y) else (position, distance)
-            return round(position, 2), round(distance, 2)
-
+        name = '基元灰分曲线'
+        axindex = 0
         self._data.sort()
         xData = [d.Ash for d in self._data]
         yData = [d.Productivity for d in self._data]
         yData = _getY1(yData)
 
-        line = self._lines['浮物曲线']
-        x1_begin, y1_begin = _getNearest0Value(line.x, line.y)
+        line, _, _ = self._lines['浮物曲线']
+        x1_begin, y1_begin = line.fy(0), 0
         xData.insert(0, x1_begin)
         yData.insert(0, y1_begin)
-        line = self._lines['沉物曲线']
-        x1_end, y1_end = _getNearest0Value(line.x, line.y)
+        line, _, _ = self._lines['沉物曲线']
+        x1_end, y1_end = line.fy(0), 0
         xData.append(x1_end)
         yData.append(100 - y1_begin)
         line = Line(pointList=list(zip(xData, yData)), xMin=0, xMax=100)
-        self._lines['基元灰分曲线'] = line
+        style = LINES_STYLE[name]
+        self._lines[name] = (line, self._axs[axindex], style)
 
     def _GetNear01Line(self):
         '''
         正负0.1含量曲线
         :return:
         '''
+        name = '±0.1含量曲线'
+        axindex = 2
         data = self._data
         data.sort()
         xData, yData = [], []
@@ -204,9 +272,12 @@ class RawCoalWashabilityCurve(object):
                 xData.append(data[i].CeilDensity - 0.1)
                 yData.append(data[i].Productivity)
         line = Line(list(zip(xData, yData)), 1.3, 1.9)
-        self._lines['±0.1含量曲线'] = line
+        style = LINES_STYLE[name]
+        self._lines[name] = (line, self._axs[axindex], style)
 
     def _GetDensityLine(self):
+        name = '密度曲线'
+        axindex = 2
         sum = 0
         data = self._data
         data.sort()
@@ -222,8 +293,50 @@ class RawCoalWashabilityCurve(object):
                 yData.append(sum - row.Productivity / 2)
         xData.sort()
         yData.sort()
-        line = Line(list(zip(xData, yData)), 1.3, 1.9)
-        self._lines['密度曲线'] = line
+        line = Line(list(zip(xData, yData)), 1.3, 2.0)
+        style = LINES_STYLE[name]
+        self._lines[name] = (line, self._axs[axindex], style)
+
+    def _GetFig(self):
+        '''
+                创建坐标系
+            '''
+        from pylab import mpl
+        mpl.rcParams['font.sans-serif'] = ['SimHei']
+        fig, ax1 = plt.subplots()
+        plt.grid(True, linestyle="-.", color="k")
+        plt.ylabel('浮物产率(%)')
+        plt.xlabel('灰分(%)')
+        plt.xlim((0, 100))
+        plt.ylim((0, 100))
+        plt.xticks(TICKS_0_110)
+        plt.yticks(TICKS_0_110)
+        plt.gca().invert_yaxis()
+        ax2 = ax1.twinx()
+        plt.ylabel('沉物产率(%)')
+        plt.ylim((0, 100))
+        plt.yticks(TICKS_0_110)
+        ax3 = ax1.twiny()
+        plt.xlabel('密度(g/L)')
+        plt.xlim((1.2, 2.2))
+        plt.xticks(TICKS_12_22)
+        plt.gca().invert_xaxis()
+        self._axs = (ax1, ax2, ax3)
+        self._fig = fig
+        self._plt = plt
+
+    def show(self):
+        lines = []
+        labels = []
+        for label, L in self._lines.items():
+            l, ax, (color, marker) = L
+            line, = ax.plot(l.x, l.y, color=color)
+            ax.plot(l.xData, l.yData, marker)
+            lines.append(line)
+            labels.append(label)
+        if LABELS_VISIBLE:
+            self._plt.legend(handles=lines, labels=labels, bbox_to_anchor=BBOX_TO_ANCHOR)
+        self._plt.show()
 
 
 if __name__ == '__main__':
@@ -239,3 +352,4 @@ if __name__ == '__main__':
     ]
 
     cur = RawCoalWashabilityCurve(test_data)
+    cur.show()

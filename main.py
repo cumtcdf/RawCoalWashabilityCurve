@@ -4,13 +4,16 @@
 '''
 import matplotlib.pyplot as plt
 from scipy import interpolate
+import numpy as np
 
 LINE_POINT_COUNT = 10000
 LABELS = ['基元灰分曲线', '浮物曲线', '沉物曲线', '±0.1含量曲线', '密度曲线']
 LABELS_VISIBLE = True
 BBOX_TO_ANCHOR = (1.05, 1)
-TICKS_0_110 = [i for i in range(0, 110, 10)]
-TICKS_12_22 = [i / 10 for i in range(12, 23, 1)]
+TICKS_0_110 = np.linspace(0,100,11)
+    # [i for i in range(0, 110, 10)]
+TICKS_12_22 = np.linspace(1.2,2.2,11)
+    # [i / 10 for i in range(12, 23, 1)]
 
 
 def GetPlotFitData(data_x, data_y, xMin, xMax):
