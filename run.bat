@@ -1,2 +1,1 @@
-@echo off
-python .\RawCoalWashabilityCurve\RawCoalWashabilityCurve.py
+@echo off & %~dp0venv\Scripts\python.exe %~dp0main.py

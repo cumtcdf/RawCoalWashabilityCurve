@@ -1,120 +1,18 @@
 # -*- coding: utf-8 -*-
 # @Time    : 05/21/2018 21:04
 # @Email   : cumtcdf@126.com
-# @File    : RawCoalWashabilityCurve.py
+# @File    : curve.py
 __author__ = "cdf"
 
 import matplotlib.pyplot as plt
-from scipy import interpolate
 from collections import Iterable
-import numpy as np
 
-LINE_POINT_COUNT = 1000
-# ================    ===============================
-# character           description
-# ================    ===============================
-# ``'-'``             solid line style
-# ``'--'``            dashed line style
-# ``'-.'``            dash-dot line style
-# ``':'``             dotted line style
-# ``'.'``             point marker
-# ``','``             pixel marker
-# ``'o'``             circle marker
-# ``'v'``             triangle_down marker
-# ``'^'``             triangle_up marker
-# ``'<'``             triangle_left marker
-# ``'>'``             triangle_right marker
-# ``'1'``             tri_down marker
-# ``'2'``             tri_up marker
-# ``'3'``             tri_left marker
-# ``'4'``             tri_right marker
-# ``'s'``             square marker
-# ``'p'``             pentagon marker
-# ``'*'``             star marker
-# ``'h'``             hexagon1 marker
-# ``'H'``             hexagon2 marker
-# ``'+'``             plus marker
-# ``'x'``             x marker
-# ``'D'``             diamond marker
-# ``'d'``             thin_diamond marker
-# ``'|'``             vline marker
-# ``'_'``             hline marker
-# ================    ===============================
-RED, YELLOW, BLUE, GREEN, MAGENTA, BLACK, WHITE, CYAN = \
-    'r', 'y', 'b', 'g', 'm', 'k', 'w', 'c'
-
-LINES_STYLE = {
-    '基元灰分曲线': (RED, "*"),
-    '浮物曲线': (GREEN, "*"),
-    '沉物曲线': (MAGENTA, "*"),
-    '±0.1含量曲线': (YELLOW, "*"),
-    '密度曲线': (BLUE, "*")
-}
-
-LABELS_VISIBLE = True
-BBOX_TO_ANCHOR = (1.05, 1)
-TICKS_0_110 = np.linspace(0, 100, 11)
-TICKS_12_22 = np.linspace(1.2, 2.2, 11)
+from .line import Line
+from .row import Row
+from .config import *
 
 
-class Row:
-    def __init__(self, flow, ceil, ash, productivity):
-        self.FlowDensity = flow
-        self.CeilDensity = ceil
-        self.Ash = round(ash, 2)
-        self.Productivity = round(productivity, 2)
-
-    def __cmp__(self, other):
-        if self.FlowDensity < other.FlowDensity:
-            return -1
-        elif self.FlowDensity > other.FlowDensity:
-            return 1
-        else:
-            return 0
-
-    def __lt__(self, other):
-        return self.FlowDensity < other.FlowDensity
-
-    def __repr__(self):
-        return 'Row({0} , {1} , {2:.2f} , {3:.2f})'.format(self.FlowDensity, self.CeilDensity, self.Ash / 100,
-                                                           self.Productivity / 100)
-
-
-class Line:
-    def __init__(self, pointList, xMin, xMax):
-        self.xData = []
-        self.yData = []
-        self.xMin, self.xMax = xMin, xMax
-        for x, y in pointList:
-            self.Add(x, y)
-        self._fx = self._GetPlotFitData()
-        self.x = np.linspace(xMin, xMax, num=LINE_POINT_COUNT, endpoint=True)
-        self.y = np.array(self._GetValues(self.x))
-        self.fx = interpolate.interp1d(self.x, self.y)
-        self.fy = interpolate.interp1d(self.y, self.x)
-
-    def _GetPlotFitData(self):
-        if self.xData[0] > self.xData[-1]:
-            self.xData.reverse()
-            self.yData.reverse()
-        fx = interpolate.splrep(self.xData, self.yData)
-        return fx
-
-    def Add(self, x, y):
-        self.xData.append(x)
-        self.yData.append(y)
-
-    def _GetValues(self, x):
-        intFlag = False
-        if isinstance(x, int):
-            intFlag = True
-            x = [x]
-        y = interpolate.splev(x, self._fx)
-        return y if not intFlag else y[0]
-
-
-class RawCoalWashabilityCurve(object):
-
+class Curve(object):
     def __init__(self, data):
         if not isinstance(data, Iterable):
             raise TypeError('data must be Iterable!')
@@ -337,19 +235,3 @@ class RawCoalWashabilityCurve(object):
         if LABELS_VISIBLE:
             self._plt.legend(handles=lines, labels=labels, bbox_to_anchor=BBOX_TO_ANCHOR)
         self._plt.show()
-
-
-if __name__ == '__main__':
-    test_data = [
-        Row(0.0, 1.3, 3.46, 10.69),
-        Row(1.3, 1.4, 8.23, 46.15),
-        Row(1.4, 1.5, 15.50, 20.14),
-        Row(1.5, 1.6, 25.50, 5.17),
-        Row(1.6, 1.7, 34.28, 2.55),
-        Row(1.7, 1.8, 42.94, 1.62),
-        Row(1.8, 2.0, 52.91, 2.13),
-        Row(2.0, 2.5, 79.64, 11.55),
-    ]
-
-    cur = RawCoalWashabilityCurve(test_data)
-    cur.show()
