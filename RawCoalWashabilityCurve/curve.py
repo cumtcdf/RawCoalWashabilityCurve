@@ -165,7 +165,8 @@ class Curve(object):
                 yData.append(data[i].Productivity + data[i + 1].Productivity)
             elif round(data[i + 1].CeilDensity - data[i].CeilDensity, 1) == 0.2:
                 xData.append(data[i].CeilDensity)
-                yData.append(data[i].Productivity + data[i + 1].Productivity / 2)
+                yData.append(data[i].Productivity +
+                             data[i + 1].Productivity / 2)
             elif round(data[i].CeilDensity - data[i].FlowDensity, 1) == 0.2:
                 xData.append(data[i].CeilDensity - 0.1)
                 yData.append(data[i].Productivity)
@@ -233,5 +234,7 @@ class Curve(object):
             lines.append(line)
             labels.append(label)
         if LABELS_VISIBLE:
-            self._plt.legend(handles=lines, labels=labels, bbox_to_anchor=BBOX_TO_ANCHOR)
+            self._plt.legend(handles=lines, labels=labels,
+                             bbox_to_anchor=BBOX_TO_ANCHOR)
+        self._plt.subplots_adjust(right=0.72)
         self._plt.show()
