@@ -5,12 +5,14 @@
 __author__ = "cdf"
 
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 from collections import Iterable
-
 from .line import Line
 from .row import Row
 from .config import *
 
+LableFont = fm.FontProperties(fname=LABLE_FONT)
+LegendFont = fm.FontProperties(fname=LEGEND_FONT)
 
 class Curve(object):
     def __init__(self, data):
@@ -200,23 +202,23 @@ class Curve(object):
         '''
                 创建坐标系
             '''
-        from pylab import mpl
-        mpl.rcParams['font.sans-serif'] = ['SimHei']
+        # from pylab import mpl
+        # mpl.rcParams['font.sans-serif'] = ['STXihei']
         fig, ax1 = plt.subplots()
         plt.grid(True, linestyle="-.", color="k")
-        plt.ylabel('浮物产率(%)')
-        plt.xlabel('灰分(%)')
+        plt.ylabel('浮物产率(%)', fontproperties=LableFont)
+        plt.xlabel('灰分(%)', fontproperties=LableFont)
         plt.xlim((0, 100))
         plt.ylim((0, 100))
         plt.xticks(TICKS_0_110)
         plt.yticks(TICKS_0_110)
         plt.gca().invert_yaxis()
         ax2 = ax1.twinx()
-        plt.ylabel('沉物产率(%)')
+        plt.ylabel('沉物产率(%)', fontproperties=LableFont)
         plt.ylim((0, 100))
         plt.yticks(TICKS_0_110)
         ax3 = ax1.twiny()
-        plt.xlabel('密度(g/L)')
+        plt.xlabel('密度(g/L)', fontproperties=LableFont)
         plt.xlim((1.2, 2.2))
         plt.xticks(TICKS_12_22)
         plt.gca().invert_xaxis()
@@ -235,6 +237,6 @@ class Curve(object):
             labels.append(label)
         if LABELS_VISIBLE:
             self._plt.legend(handles=lines, labels=labels,
-                             bbox_to_anchor=BBOX_TO_ANCHOR)
+                             bbox_to_anchor=BBOX_TO_ANCHOR, prop=LegendFont)
         self._plt.subplots_adjust(right=0.72)
         self._plt.show()
