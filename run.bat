@@ -1,2 +1,3 @@
-@echo off & python %~dp0main.py
+@echo off
+python %~dp0main.py
 pause

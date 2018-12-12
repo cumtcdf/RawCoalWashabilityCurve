@@ -9,11 +9,12 @@ __author__ = "cdf"
 from scipy import interpolate
 import numpy as np
 
-
 from .config import *
 
+
 class Line:
-    def __init__(self, pointList, xMin, xMax):
+    def __init__(self, pointList, xMin, xMax, nk=3):
+        self.nk = nk
         self.xData = []
         self.yData = []
         self.xMin, self.xMax = xMin, xMax
@@ -25,11 +26,12 @@ class Line:
         self.fx = interpolate.interp1d(self.x, self.y)
         self.fy = interpolate.interp1d(self.y, self.x)
 
+
     def _GetPlotFitData(self):
         if self.xData[0] > self.xData[-1]:
             self.xData.reverse()
             self.yData.reverse()
-        fx = interpolate.splrep(self.xData, self.yData)
+        fx = interpolate.splrep(self.xData, self.yData, k=self.nk)
         return fx
 
     def Add(self, x, y):
@@ -43,5 +45,3 @@ class Line:
             x = [x]
         y = interpolate.splev(x, self._fx)
         return y if not intFlag else y[0]
-
-

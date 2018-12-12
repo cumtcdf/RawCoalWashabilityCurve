@@ -1,4 +1,4 @@
-from .Forms.main_form import MainForm
+from .form.main_form import MainForm
 import wx
 
 

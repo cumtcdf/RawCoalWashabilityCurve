@@ -2,27 +2,70 @@ import wx
 import wx.xrc
 import wx.grid
 
+from .input_form import InputForm
+from RawCoalWashabilityCurve import Row, Curve
+
 
 class GridPopupMenu(wx.Menu):
-    def __init__(self, parent):
+    def __init__(self, parent, index):
         if not isinstance(parent, wx.grid.Grid):
             raise ValueError("父类必须为wx.grid.Grid类型!")
         super(GridPopupMenu, self).__init__()
         self.parent = parent
+        self.index = index
+        itmPAdd = wx.MenuItem(self, wx.NewId(), "添加一行")
+        self.Append(itmPAdd)
+        self.Bind(wx.EVT_MENU, self.OnPAddRow, itmPAdd)
 
-        mmi = wx.MenuItem(self, wx.NewId(), '添加一行')
-        self.AppendItem(mmi)
-        self.Bind(wx.EVT_MENU, self.OnAddRow, mmi)
+        itmDel = wx.MenuItem(self, wx.NewId(), "删除该行")
+        self.Append(itmDel)
+        self.Bind(wx.EVT_MENU, self.OnDeleteRow, itmDel)
 
-        cmi = wx.MenuItem(self, wx.NewId(), '删除该行')
-        self.AppendItem(cmi)
-        self.Bind(wx.EVT_MENU, self.OnDeleteRow, cmi)
+        itmSave = wx.MenuItem(self, wx.NewId(), "绘制")
+        self.Append(itmSave)
+        self.Bind(wx.EVT_MENU, self.OnShowPic, itmSave)
 
-    def OnAddRow(self, e):
-        pass
+        itmDemo = wx.MenuItem(self, wx.NewId(), "样例")
+        self.Append(itmDemo)
+        self.Bind(wx.EVT_MENU, self.OnShowDemo, itmDemo)
+
+    def OnPAddRow(self, e):
+        self.ShowInput()
 
     def OnDeleteRow(self, e):
+        self.parent.DeleteRows(self.index)
         pass
+
+    def OnShowPic(self, e):
+        picdata = []
+        for _, data in self.parent._data.values():
+            picdata.append(data)
+        try:
+            cur = Curve(picdata)
+            cur.show()
+        except Exception as e:
+            wx.MessageBox(str.format('{0}',e),'错误',wx.OK|wx.ICON_ERROR)
+        pass
+
+    def OnShowDemo(self,e):
+        test_data = [
+                Row(0.0, 1.3, 4.96, 31.05),
+                Row(1.3, 1.4, 8.42, 41.24),
+                Row(1.4, 1.5, 20.02, 8.54),
+                Row(1.5, 1.6, 31.80, 2.95),
+                Row(1.6, 1.8, 42.54, 3.28),
+                Row(1.8, 2.0, 56.41, 1.57),
+                Row(2.0, 2.5, 85.43,11.37)
+            ]
+        cur = Curve(test_data)
+        cur.show()
+        pass
+
+
+    def ShowInput(self):
+        inputFm = InputForm(parent=self.parent)
+        if inputFm.ShowModal() == wx.ID_OK:
+            self.parent.AddDataLine(inputFm.row)
 
 
 class DataGrid(wx.grid.Grid):
@@ -31,6 +74,7 @@ class DataGrid(wx.grid.Grid):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.WANTS_CHARS,
                  name=wx.grid.GridNameStr):
         super(DataGrid, self).__init__(parent, id=id, pos=pos, size=size, style=style, name=name)
+        self._data = {}
         self.moveTo = None
 
         self.Bind(wx.EVT_IDLE, self.OnIdle)
@@ -41,8 +85,6 @@ class DataGrid(wx.grid.Grid):
         self._DrawHeader()
         self._DrawFooter()
         self._BindEvents()
-
-        self.AddDataLine(4, 1.2, 1.3, 32.3, 3.6)
         pass
 
     def _SetCellStringLength(self, x, y, len):
@@ -159,19 +201,68 @@ class DataGrid(wx.grid.Grid):
 
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChange)
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnEditorShown)
         self.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.OnEditorHidden)
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreated)
         pass
 
-    def AddDataLine(self, index, low, high, r, a):
+    def AddDataLine(self, row):
+        low, high, a, r = row.FlowDensity, row.CeilDensity, row.Ash, row.Productivity
+        density = ""
+        if high == 1.3:
+            density = str.format("<1.3")
+        elif low == 2.0:
+            density = str.format(">2.0")
+        else:
+            density = str.format("{0}~{1}", low, high)
+
+        def getIndex():
+            resultIndex = -1
+            if len(self._data) == 0:
+                self._data[density] = [0, row]
+                return 0
+            if density in self._data:
+                raise Exception("密度级已存在,如需修改,请删除后,重新录入.")
+            for data in self._data.values():
+                rowIndex, rowData = data
+                if (low > rowData.FlowDensity and low < rowData.CeilDensity) or (
+                        high > rowData.FlowDensity and high < rowData.CeilDensity):
+                    raise Exception(str.format("{0}与已录入{1}密度级存在交叉,请确认后,重新录入.", row, rowData))
+                if high <= rowData.FlowDensity:
+                    if resultIndex == -1:
+                        resultIndex = rowIndex
+                    data[0] += 1
+            resultIndex = len(self._data) if resultIndex == -1 else resultIndex
+            self._data[density] = [resultIndex, row]
+            return resultIndex
+
+        index = getIndex() + 4
+
+        if index == -1:
+            wx.MessageBox('密度级已存在,请重新录入!', '提示', wx.OK | wx.ICON_INFORMATION)
+            return
+
         self.InsertRows(index, 1)
-        density = str.format("{0}~{1}", low, high)
         self.SetCellValue(index, 0, density)
         self._SetFloatCell(index, 1, r)
         self._SetFloatCell(index, 2, a)
+        pass
+
+    def OnResetData(self):
+
+        pass
+
+    def DeleteRows(self, pos=0, numRows=1, updateLabels=True):
+        key = self.GetCellValue(pos, 0)
+        index, _ = self._data[key]
+        self._data.pop(key)
+        for v in self._data.values():
+            i , _ = v
+            if i > index:
+                v[0] -= 1
+        super(DataGrid, self).DeleteRows(pos, numRows, updateLabels)
+
         pass
 
     def OnCellLeftClick(self, evt):
@@ -182,7 +273,7 @@ class DataGrid(wx.grid.Grid):
         rowCount = self.NumberRows
         # 只在数据区域显示菜单.
         if rowCount <= 7 or (row >= 4 and row <= rowCount - 1 - 3):
-            self.PopupMenu(GridPopupMenu(self), evt.GetPosition())
+            self.PopupMenu(GridPopupMenu(self, row), evt.GetPosition())
 
     def OnCellLeftDClick(self, evt):
         evt.skip()
@@ -221,9 +312,6 @@ class DataGrid(wx.grid.Grid):
         # evt.skip()
         pass
 
-    def OnSelectCell(self, evt):
-        evt.skip()
-
     def OnEditorShown(self, evt):
         evt.skip()
 
@@ -233,8 +321,7 @@ class DataGrid(wx.grid.Grid):
     def OnEditorCreated(self, evt):
         evt.skip()
 
-
-pass
+    pass
 
 
 class MainForm(wx.Frame):
@@ -245,6 +332,17 @@ class MainForm(wx.Frame):
                           style=wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE | wx.TAB_TRAVERSAL)
 
         self._grid = DataGrid(self)
+        # test_data = [
+        #         Row(0.0, 1.3, 4.96, 31.05),
+        #         Row(1.3, 1.4, 8.42, 41.24),
+        #         Row(1.4, 1.5, 20.02, 8.54),
+        #         Row(1.5, 1.6, 31.80, 2.95),
+        #         Row(1.6, 1.8, 42.54, 3.28),
+        #         Row(1.8, 2.0, 56.41, 1.57),
+        #         Row(2.0, 2.5, 85.43,11.37)
+        #     ]
+        # for row in test_data:
+        #     self._grid.AddDataLine(row)
 
     def __del__(self):
         pass

@@ -25,7 +25,7 @@ class Curve(object):
             else:
                 temp += round(d.Productivity, 2)
 
-        if round(temp, 2) != 100:
+        if round(temp, 2) != 100.0:
             raise ValueError('浮沉数据中产率之和不为100!')
 
         self._data = data
@@ -46,8 +46,8 @@ class Curve(object):
         '''
                 创建坐标系
             '''
-        from pylab import mpl
-        mpl.rcParams['font.sans-serif'] = ['SimHei']
+        # from pylab import mpl
+        # mpl.rcParams['font.sans-serif'] = ['SimHei']
         fig, ax1 = plt.subplots()
         plt.grid(True, linestyle="-.", color=BLACK)
         plt.ylabel('浮物产率(%)')
@@ -84,7 +84,7 @@ class Curve(object):
             temp += d.Productivity * d.Ash
             x = temp / y if y != 0 else d.Ash
             pointList.append((x, y))
-        line = Line(pointList=pointList, xMin=x, xMax=100)
+        line = Line(pointList=pointList, xMin=x, xMax=100,nk=5)
         style = LINES_STYLE[name]
         self._lines[name] = (line, self._axs[axindex], style)
         return
