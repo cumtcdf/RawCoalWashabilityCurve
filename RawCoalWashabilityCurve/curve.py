@@ -35,9 +35,9 @@ class Curve(object):
         self._axs = None
         self._plt = None
         self._GetFig()
-        self._GetSinksData()
         self._GetFloatsLine()
         self._GetRawAshLine()
+        self._GetSinksData()
         self._GetNear01Line()
         self._GetDensityLine()
         pass
@@ -84,7 +84,11 @@ class Curve(object):
             temp += d.Productivity * d.Ash
             x = temp / y if y != 0 else d.Ash
             pointList.append((x, y))
-        line = Line(pointList=pointList, xMin=x, xMax=100,nk=5)
+            # 添加基元灰分曲线拟合出的点.
+        line, _, _ = self._lines['基元灰分曲线']
+        x1_end, y1_end = line.fy(100), 0
+        pointList.insert(0,(x1_end, y1_end))
+        line = Line(pointList=pointList, xMin=x, xMax=100)
         style = LINES_STYLE[name]
         self._lines[name] = (line, self._axs[axindex], style)
         return
@@ -104,6 +108,8 @@ class Curve(object):
             temp += d.Productivity * d.Ash
             x = round(temp / y, 2) if y != 0 else d.Ash
             pointList.append((x, y))
+
+
         line = Line(pointList=pointList, xMin=0, xMax=x)
         style = LINES_STYLE[name]
         self._lines[name] = (line, self._axs[axindex], style)
@@ -139,10 +145,6 @@ class Curve(object):
         x1_begin, y1_begin = line.fy(0), 0
         xData.insert(0, x1_begin)
         yData.insert(0, y1_begin)
-        line, _, _ = self._lines['沉物曲线']
-        x1_end, y1_end = line.fy(0), 0
-        xData.append(x1_end)
-        yData.append(100 - y1_begin)
         line = Line(pointList=list(zip(xData, yData)), xMin=0, xMax=100)
         style = LINES_STYLE[name]
         self._lines[name] = (line, self._axs[axindex], style)

@@ -31,7 +31,7 @@ class Line:
         if self.xData[0] > self.xData[-1]:
             self.xData.reverse()
             self.yData.reverse()
-        fx = interpolate.splrep(self.xData, self.yData, k=self.nk)
+        fx = interpolate.splrep(self.xData, self.yData)
         return fx
 
     def Add(self, x, y):

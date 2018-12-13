@@ -25,9 +25,13 @@ class GridPopupMenu(wx.Menu):
         self.Append(itmSave)
         self.Bind(wx.EVT_MENU, self.OnShowPic, itmSave)
 
-        itmDemo = wx.MenuItem(self, wx.NewId(), "样例")
-        self.Append(itmDemo)
-        self.Bind(wx.EVT_MENU, self.OnShowDemo, itmDemo)
+        itmDemo1 = wx.MenuItem(self, wx.NewId(), "样例1")
+        self.Append(itmDemo1)
+        self.Bind(wx.EVT_MENU, self.OnShowDemo1, itmDemo1)
+
+        itmDemo2 = wx.MenuItem(self, wx.NewId(), "样例2")
+        self.Append(itmDemo2)
+        self.Bind(wx.EVT_MENU, self.OnShowDemo2, itmDemo2)
 
     def OnPAddRow(self, e):
         self.ShowInput()
@@ -47,7 +51,7 @@ class GridPopupMenu(wx.Menu):
             wx.MessageBox(str.format('{0}',e),'错误',wx.OK|wx.ICON_ERROR)
         pass
 
-    def OnShowDemo(self,e):
+    def OnShowDemo1(self,e):
         test_data = [
                 Row(0.0, 1.3, 4.96, 31.05),
                 Row(1.3, 1.4, 8.42, 41.24),
@@ -56,6 +60,20 @@ class GridPopupMenu(wx.Menu):
                 Row(1.6, 1.8, 42.54, 3.28),
                 Row(1.8, 2.0, 56.41, 1.57),
                 Row(2.0, 2.5, 85.43,11.37)
+            ]
+        cur = Curve(test_data)
+        cur.show()
+        pass
+
+    def OnShowDemo2(self,e):
+        test_data = [
+                Row(0.0, 1.3, 3.601148169174, 32.2266575446744),
+                Row(1.3, 1.4, 7.78831212484994, 47.6241941078516),
+                Row(1.4, 1.5, 16.7310638297872, 8.59865401419073),
+                Row(1.5, 1.6, 27.8131045751634, 3.498920383434),
+                Row(1.6, 1.8, 39.5646975088968, 3.21306087498351),
+                Row(1.8, 2.0, 51.8146153846154, 1.52067553781494),
+                Row(2.0, 2.5, 74.9332692307692,3.31783753705079)
             ]
         cur = Curve(test_data)
         cur.show()
