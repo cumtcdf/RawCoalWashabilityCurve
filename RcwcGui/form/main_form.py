@@ -284,7 +284,7 @@ class DataGrid(wx.grid.Grid):
         pass
 
     def OnCellLeftClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnCellRightClick(self, evt):
         row = evt.GetRow()
@@ -294,50 +294,50 @@ class DataGrid(wx.grid.Grid):
             self.PopupMenu(GridPopupMenu(self, row), evt.GetPosition())
 
     def OnCellLeftDClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnCellRightDClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnLabelLeftClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnLabelRightClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnLabelLeftDClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnLabelRightDClick(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnGridColSort(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnRowSize(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnColSize(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnRangeSelect(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnCellChange(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnIdle(self, evt):
-        # evt.skip()
+        # evt.Skip()
         pass
 
     def OnEditorShown(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnEditorHidden(self, evt):
-        evt.skip()
+        evt.Skip()
 
     def OnEditorCreated(self, evt):
-        evt.skip()
+        evt.Skip()
 
     pass
 
